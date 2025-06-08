@@ -1,0 +1,70 @@
+% Cargar los datos
+prediquick=readtable('prediquick');
+[sujetos, variables]=size(prediquick);
+datos=table2array(prediquick(:,2:end));
+% Análisis exploratorio de los datos
+% Visualización de los datos
+figure;
+subplot(2,2,1);
+histogram(datos(:,1));
+title('Variable 1');
+subplot(2,2,2);
+histogram(datos(:,2));
+title('Variable 2');
+% ... (otras variables)
+subplot(2,2,3);
+scatter(datos(:,1), datos(:,2));
+title('Relación entre variable 1 y 2');
+
+for i=1:63
+    subplot(8,8,i);
+    histogram(datos(:,i));
+end;
+% ... (otras relaciones)
+% Dibujar gráficos de caja
+figure;
+subplot(2,2,1);
+boxplot(datos(:,1));
+title('Variable 1');
+subplot(2,2,2);
+boxplot(datos(:,2));
+title('Variable 2');
+for i=1:63
+    subplot(8,8,i);
+    boxplot(datos(:,i));
+end;
+% ... (otras variables)
+% Normalización de los datos
+datos_norm = (datos - mean(datos)) ./ std(datos);
+% Análisis de multicolinealidad
+corr = corrcoef(datos_norm);
+figure;
+imagesc(corr);
+colorbar;
+
+%%particion de datos
+datos=table2array(prediquick);
+X=datos(:,2:end-1);
+y=datos(:,end);
+cv=cvpartition(y,'Holdout', 0.3);
+Xtrain=X(training(cv),:);
+ytrain=y(training(cv));
+Xtest=X(test(cv),:);
+ytest=y(test(cv));
+
+
+%%regresion lineal
+%entrenamiento del modelo de regresion lineal
+model=fitlm(Xtrain,ytrain);
+%Hacer predicciones con el modelo entrenado
+y_pred=predict(model, Xtest);
+
+%Calcular el error de las predicciones
+error=mean(abs(y_pred-ytest));
+%%regresion logistica
+%entrenar el modelo de regresion logistica
+mdl=fitglm(Xtrain, ytrain,'Distribucion', 'binomial');
+
+%realizar predicciones sobre el conjunto de prueba
+yhat=predct(mdl, Xtest);
+error2=mean(abs(yhat-ytest));
